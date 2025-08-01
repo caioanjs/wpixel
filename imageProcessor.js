@@ -107,6 +107,8 @@ class ImageProcessor {
 
         tempContext.putImageData(imageData, 0, 0);
 
+        this.sourceCanvas = tempCanvas;
+        
         this.displayPixelArt(tempCanvas, targetWidth, targetHeight);
 
         return {
@@ -140,8 +142,6 @@ class ImageProcessor {
         this.resultContext.msImageSmoothingEnabled = false;
 
         this.resultContext.drawImage(sourceCanvas, 0, 0, displayWidth, displayHeight);
-
-        this.sourceCanvas = sourceCanvas;
         
         this.initializeGridOverlay(displayWidth, displayHeight, pixelWidth, pixelHeight);
     }
@@ -231,41 +231,38 @@ class ImageProcessor {
         const isGridVisible = gridCanvas.style.display !== 'none';
         
         if (!isGridVisible) {
-            return this.resultCanvas.toDataURL('image/png');
+            return this.sourceCanvas.toDataURL('image/png');
         }
         
         const compositeCanvas = document.createElement('canvas');
         const compositeContext = compositeCanvas.getContext('2d');
         
-        compositeCanvas.width = this.resultCanvas.width;
-        compositeCanvas.height = this.resultCanvas.height;
+        compositeCanvas.width = this.sourceCanvas.width;
+        compositeCanvas.height = this.sourceCanvas.height;
         
-        compositeContext.drawImage(this.resultCanvas, 0, 0);
+        compositeContext.drawImage(this.sourceCanvas, 0, 0);
         
-        compositeContext.globalCompositeOperation = 'difference';
+        const pixelWidth = this.sourceCanvas.width;
+        const pixelHeight = this.sourceCanvas.height;
+        const cellWidth = 1;
+        const cellHeight = 1;
         
-        const pixelWidth = parseInt(this.resultCanvas.dataset.originalWidth);
-        const pixelHeight = parseInt(this.resultCanvas.dataset.originalHeight);
-        const cellWidth = this.resultCanvas.width / pixelWidth;
-        const cellHeight = this.resultCanvas.height / pixelHeight;
-        const lineWidth = Math.max(1, Math.min(3, cellWidth / 10));
+        compositeContext.strokeStyle = 'rgba(128, 128, 128, 0.5)';
+        compositeContext.lineWidth = 1;
         
-        const gridTempCanvas = document.createElement('canvas');
-        const gridTempContext = gridTempCanvas.getContext('2d');
-        gridTempCanvas.width = this.resultCanvas.width;
-        gridTempCanvas.height = this.resultCanvas.height;
+        for (let x = 0; x <= pixelWidth; x++) {
+            compositeContext.beginPath();
+            compositeContext.moveTo(x, 0);
+            compositeContext.lineTo(x, pixelHeight);
+            compositeContext.stroke();
+        }
         
-        gridTempContext.strokeStyle = 'rgba(0, 0, 0, 0.6)';
-        gridTempContext.lineWidth = lineWidth + 1;
-        this.drawGridLines(gridTempContext, pixelWidth, pixelHeight, cellWidth, cellHeight, this.resultCanvas.width, this.resultCanvas.height);
-        
-        gridTempContext.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-        gridTempContext.lineWidth = lineWidth;
-        this.drawGridLines(gridTempContext, pixelWidth, pixelHeight, cellWidth, cellHeight, this.resultCanvas.width, this.resultCanvas.height);
-        
-        compositeContext.drawImage(gridTempCanvas, 0, 0);
-        
-        compositeContext.globalCompositeOperation = 'source-over';
+        for (let y = 0; y <= pixelHeight; y++) {
+            compositeContext.beginPath();
+            compositeContext.moveTo(0, y);
+            compositeContext.lineTo(pixelWidth, y);
+            compositeContext.stroke();
+        }
         
         return compositeCanvas.toDataURL('image/png');
     }
@@ -357,12 +354,12 @@ class ImageProcessor {
 
     async copyToClipboard() {
         try {
-            if (!this.resultCanvas) {
+            if (!this.sourceCanvas) {
                 throw new Error('No pixel art generated');
             }
 
             const blob = await new Promise(resolve => {
-                this.resultCanvas.toBlob(resolve, 'image/png');
+                this.sourceCanvas.toBlob(resolve, 'image/png');
             });
 
             await navigator.clipboard.write([
