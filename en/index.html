@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>wPixel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Geist:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="icon" type="image/x-icon" href="../img/favicon.png">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 data-translate="title">wPixel</h1>
+            <p data-translate="subtitle">Converta suas imagens para arte pixel usando a paleta de cores do r/place</p>
+        </header>
+
+        <main>
+            <section class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-content">
+                        <div class="upload-icon">📁</div>
+                        <p>Clique para enviar uma imagem ou arraste e solte</p>
+                        <input type="file" id="imageInput" accept="image/*" hidden>
+                    </div>
+                </div>
+            </section>
+
+            <section class="controls-section" id="controlsSection" style="display: none;">
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <h3 data-translate="pixelationSettings">Configurações de Pixelização</h3>
+                        <div class="control-item">
+                            <label for="pixelSize">Largura desejada (pixels):</label>
+                            <div class="input-group">
+                                <input type="range" id="pixelSize" min="8" max="200" value="32">
+                                <input type="number" id="pixelSizeNumber" min="8" max="200" value="32">
+                            </div>
+                        </div>
+                        <div class="pixel-info">
+                            <span id="pixelInfo">Pixels: 32 × 32 = 1,024 pixels</span>
+                        </div>
+                        
+                        <div class="control-item" style="margin-top: 20px;">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="showGrid">
+                                <span data-translate="showGridOverlay">Mostrar grade de pixels</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <h3 data-translate="colorPalette">Paleta de Cores</h3>
+                        
+                        <div class="color-mode-tabs">
+                            <button class="mode-tab active" data-mode="free">Apenas Cores Livres</button>
+                            <button class="mode-tab" data-mode="custom">Seleção Personalizada</button>
+                        </div>
+                        
+                        <div class="custom-colors-section" id="customColorsSection" style="display: none;">
+                            <div class="color-selection-header">
+                                <h4 data-translate="chooseColors">Escolha suas Cores</h4>
+                                <div class="selection-tools">
+                                    <button class="tool-btn" id="selectAllFree">Todas Livres</button>
+                                    <button class="tool-btn" id="selectAllLocked">Todas Bloqueadas</button>
+                                    <button class="tool-btn" id="selectAll">Selecionar Todas</button>
+                                    <button class="tool-btn" id="clearAll">Limpar Todas</button>
+                                </div>
+                            </div>
+                            
+                            <div class="color-selection-grid">
+                                <div class="color-group-section">
+                                    <h5>Cores Livres <span class="count" id="freeCount">(0 selecionadas)</span></h5>
+                                    <div class="selectable-color-grid" id="selectableFreeColors"></div>
+                                </div>
+                                
+                                <div class="color-group-section">
+                                    <h5>Cores Bloqueadas 🔒 <span class="count" id="lockedCount">(0 selecionadas)</span></h5>
+                                    <div class="selectable-color-grid" id="selectableLockedColors"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="selection-summary">
+                                <span id="totalSelected">Total: 0 cores selecionadas</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="convert-btn" id="convertBtn">Converter para Arte Pixel</button>
+            </section>
+
+            <section class="results-section" id="resultsSection" style="display: none;">
+                <div class="results-grid">
+                    <div class="result-item">
+                        <h3 data-translate="originalImage">Imagem Original</h3>
+                        <div class="canvas-container">
+                            <canvas id="originalCanvas"></canvas>
+                        </div>
+                    </div>
+                    <div class="result-item">
+                        <h3 data-translate="pixelArtResult">Resultado da Arte Pixel</h3>
+                        <div class="canvas-container">
+                            <canvas id="resultCanvas"></canvas>
+                            <canvas id="gridCanvas" class="grid-overlay" style="display: none;"></canvas>
+                        </div>
+                        <div class="grid-controls">
+                            <button class="grid-toggle" id="gridToggle">
+                                <span class="grid-icon">⊞</span> Mostrar Grade
+                            </button>
+                        </div>
+                        <div class="result-actions">
+                            <button class="action-btn" id="downloadBtn">📥 Download Normal</button>
+                            <button class="action-btn high-res" id="downloadHighResBtn">🔍 Download 100x Alta Resolução</button>
+                            <button class="action-btn" id="copyBtn">📋 Copiar para Área de Transferência</button>
+                        </div>
+                        <div class="bluemarble-info">
+                            <p data-translate="bluemarbleText">you can use <a href="https://github.com/SwingTheVine/Wplace-BlueMarble/" target="_blank">BlueMarble</a> to use this as an overlay!</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../translations.js"></script>
+    <script src="../colorPalette.js"></script>
+    <script src="../imageProcessor.js"></script>
+    <script src="../script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            window.languageManager = new LanguageManager();
+            window.languageManager.currentLanguage = 'en';
+            window.languageManager.shouldShowPopup = false;
+            
+            const popup = document.getElementById('languagePopup');
+            if (popup) {
+                popup.style.display = 'none';
+                popup.classList.remove('show');
+            }
+            
+            window.languageManager.updatePageTexts();
+        });
+    </script>
+</body>
+</html>
