@@ -408,13 +408,16 @@ a:hover {
 }
 
 .results-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
     gap: 30px;
 }
 
 .result-item {
     text-align: center;
+    max-width: 600px;
+    width: 100%;
 }
 
 .result-item h3 {
@@ -635,9 +638,12 @@ a:hover {
 
 @media (max-width: 768px) {
     .controls-grid,
-    .results-grid,
     .palette-container {
         grid-template-columns: 1fr;
+    }
+    
+    .results-grid {
+        padding: 0 10px;
     }
     
     header h1 {
