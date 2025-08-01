@@ -21,9 +21,9 @@ const TRANSLATIONS = {
         selectedPlural: "selecionadas",
         total: "Total",
         colorsSelected: "cores selecionadas",
-        convertButton: "Converter para Arte Pixel",
+        convertButton: "Converter para Pixel Art",
         originalImage: "Imagem Original",
-        pixelArtResult: "Resultado da Arte Pixel",
+        pixelArtResult: "Resultado da Pixel Art",
         showGrid: "Mostrar Grade",
         hideGrid: "Esconder Grade",
         downloadNormal: "📥 Download Normal",
@@ -287,3 +287,4 @@ class LanguageManager {
 }
 
 const languageManager = new LanguageManager();
+
