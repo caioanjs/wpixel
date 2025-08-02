@@ -1,13 +1,14 @@
 const COLOR_PALETTE = {
     free: [
-        '#000000', '#898D90', '#D4D7D9', '#FFFFFF',
+        '#000000', '#FFFFFF', '#898D90', '#D4D7D9',
         '#6D001A', '#BE0039', '#FF4500', '#FFA800',
-        '#FFD635', '#00A368', '#00CC78', '#7EED56',
-        '#00756F', '#009EAA', '#2450A4', '#3690EA',
-        '#51E9F4', '#493AC1', '#6A5CFF', '#811E9F',
-        '#B44AC0', '#FF3881', '#FF99AA', '#6D482F',
-        '#9C6926', '#000000'
-    ],
+        '#FFD635', '#FFF8B4', '#00A368', '#00CC78', 
+        '#7EED56', '#00756F', '#009EAA', '#00CCC0',
+        '#2450A4', '#3690EA', '#51E9F4', '#493AC1',
+        '#6A5CFF', '#94B3FF', '#811E9F', '#B44AC0',
+        '#FF3881', '#FF99AA', '#6D482F', '#9C6926',
+        '#FFB470', '#C1876B'
+    ].map(color => color.toUpperCase()),
     
     locked: [
         '#515252', '#94B3FF', '#004CFF', '#0E4B99',
@@ -18,23 +19,73 @@ const COLOR_PALETTE = {
         '#FFC947', '#FFEB3B', '#F57C00', '#E65100',
         '#8E24AA', '#3F51B5', '#2196F3', '#00BCD4',
         '#009688', '#4CAF50', '#8BC34A', '#CDDC39'
-    ]
+    ].map(color => color.toUpperCase())
 };
 
 function hexToRgb(hex) {
+    // Ensure hex is a string and remove any whitespace
+    if (typeof hex !== 'string') return null;
+    hex = hex.trim();
+    
+    // Add # if missing
+    if (!hex.startsWith('#')) {
+        hex = '#' + hex;
+    }
+    
+    // Validate hex format
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
+    if (!result) {
+        console.warn('Invalid hex color:', hex);
+        return null;
+    }
+    
+    return {
         r: parseInt(result[1], 16),
         g: parseInt(result[2], 16),
         b: parseInt(result[3], 16)
-    } : null;
+    };
 }
 
 function rgbToHex(r, g, b) {
+    // Ensure values are valid integers between 0-255
+    r = Math.max(0, Math.min(255, Math.round(r)));
+    g = Math.max(0, Math.min(255, Math.round(g)));
+    b = Math.max(0, Math.min(255, Math.round(b)));
+    
     return "#" + [r, g, b].map(x => {
         const hex = x.toString(16);
         return hex.length === 1 ? "0" + hex : hex;
-    }).join("");
+    }).join("").toUpperCase();
+}
+
+function rgbToLab(r, g, b) {
+    // Convert RGB to XYZ
+    let x = r / 255;
+    let y = g / 255;
+    let z = b / 255;
+
+    x = x > 0.04045 ? Math.pow((x + 0.055) / 1.055, 2.4) : x / 12.92;
+    y = y > 0.04045 ? Math.pow((y + 0.055) / 1.055, 2.4) : y / 12.92;
+    z = z > 0.04045 ? Math.pow((z + 0.055) / 1.055, 2.4) : z / 12.92;
+
+    x *= 95.047;
+    y *= 100.000;
+    z *= 108.883;
+
+    // Convert XYZ to LAB
+    x /= 95.047;
+    y /= 100.000;
+    z /= 108.883;
+
+    x = x > 0.008856 ? Math.pow(x, 1/3) : (7.787 * x + 16/116);
+    y = y > 0.008856 ? Math.pow(y, 1/3) : (7.787 * y + 16/116);
+    z = z > 0.008856 ? Math.pow(z, 1/3) : (7.787 * z + 16/116);
+
+    const L = (116 * y) - 16;
+    const a = 500 * (x - y);
+    const bComponent = 200 * (y - z);
+
+    return { L, a, b: bComponent };
 }
 
 function colorDistance(color1, color2) {
@@ -43,18 +94,40 @@ function colorDistance(color1, color2) {
     
     if (!c1 || !c2) return Infinity;
     
-    const dr = c1.r - c2.r;
-    const dg = c1.g - c2.g;
-    const db = c1.b - c2.b;
+    // Use perceptual color distance (Delta E CIE76)
+    const lab1 = rgbToLab(c1.r, c1.g, c1.b);
+    const lab2 = rgbToLab(c2.r, c2.g, c2.b);
     
-    return Math.sqrt(dr * dr + dg * dg + db * db);
+    const deltaL = lab1.L - lab2.L;
+    const deltaA = lab1.a - lab2.a;
+    const deltaB = lab1.b - lab2.b;
+    
+    return Math.sqrt(deltaL * deltaL + deltaA * deltaA + deltaB * deltaB);
 }
 
 function findClosestColor(targetColor, palette) {
+    if (!palette || palette.length === 0) {
+        console.warn('Empty palette provided, using default black');
+        return '#000000';
+    }
+    
+    // Ensure target color is valid
+    const targetRgb = hexToRgb(targetColor);
+    if (!targetRgb) {
+        console.warn('Invalid target color:', targetColor);
+        return palette[0];
+    }
+    
     let closestColor = palette[0];
     let minDistance = Infinity;
     
     for (const color of palette) {
+        // Validate each palette color
+        if (!hexToRgb(color)) {
+            console.warn('Invalid palette color:', color);
+            continue;
+        }
+        
         const distance = colorDistance(targetColor, color);
         if (distance < minDistance) {
             minDistance = distance;
@@ -62,7 +135,32 @@ function findClosestColor(targetColor, palette) {
         }
     }
     
+    // Validate the result is actually in the palette
+    if (!palette.includes(closestColor)) {
+        console.warn('Closest color not in palette, using first palette color');
+        return palette[0];
+    }
+    
     return closestColor;
+}
+
+function validatePalette(palette) {
+    const validColors = [];
+    const invalidColors = [];
+    
+    for (const color of palette) {
+        if (hexToRgb(color)) {
+            validColors.push(color.toUpperCase());
+        } else {
+            invalidColors.push(color);
+        }
+    }
+    
+    if (invalidColors.length > 0) {
+        console.warn('Found invalid colors in palette:', invalidColors);
+    }
+    
+    return validColors;
 }
 
 function getAvailableColors(includeLocked = false, selectedLockedColors = []) {
@@ -108,6 +206,11 @@ function initializeSelectableColorPicker() {
     const freeColorsContainer = document.getElementById('selectableFreeColors');
     const lockedColorsContainer = document.getElementById('selectableLockedColors');
     
+    if (!freeColorsContainer || !lockedColorsContainer) {
+        console.warn('Color picker containers not found');
+        return;
+    }
+    
     COLOR_PALETTE.free.forEach((color, index) => {
         const swatch = createSelectableSwatch(color, `free-${index}`, false);
         freeColorsContainer.appendChild(swatch);
@@ -147,9 +250,13 @@ function updateSelectionCounts() {
     const lockedSelected = document.querySelectorAll('#selectableLockedColors .selectable-color-swatch.selected').length;
     const totalSelected = freeSelected + lockedSelected;
     
-    document.getElementById('freeCount').textContent = `(${freeSelected} selected)`;
-    document.getElementById('lockedCount').textContent = `(${lockedSelected} selected)`;
-    document.getElementById('totalSelected').textContent = `Total: ${totalSelected} colors selected`;
+    const freeCountEl = document.getElementById('freeCount');
+    const lockedCountEl = document.getElementById('lockedCount');
+    const totalSelectedEl = document.getElementById('totalSelected');
+    
+    if (freeCountEl) freeCountEl.textContent = `(${freeSelected} selected)`;
+    if (lockedCountEl) lockedCountEl.textContent = `(${lockedSelected} selected)`;
+    if (totalSelectedEl) totalSelectedEl.textContent = `Total: ${totalSelected} colors selected`;
 }
 
 function getSelectedColors() {
@@ -188,15 +295,30 @@ function getCurrentColorMode() {
 
 function getAvailableColorsForMode() {
     const mode = getCurrentColorMode();
+    let colors = [];
     
     if (mode === 'free') {
-        return COLOR_PALETTE.free;
+        colors = COLOR_PALETTE.free;
     } else if (mode === 'custom') {
         const selected = getSelectedColors();
-        return selected.length > 0 ? selected : COLOR_PALETTE.free;
+        colors = selected.length > 0 ? selected : COLOR_PALETTE.free;
     }
     
-    return COLOR_PALETTE.free;
+    // Validate and clean the palette
+    const validColors = validatePalette(colors);
+    
+    if (validColors.length === 0) {
+        console.warn('No valid colors found, falling back to basic palette');
+        return ['#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF'];
+    }
+    
+    console.log(`Using ${validColors.length} valid colors for conversion`);
+    return validColors;
+}
+
+function getSelectedLockedColors() {
+    const selectedLockedSwatches = document.querySelectorAll('#selectableLockedColors .selectable-color-swatch.selected');
+    return Array.from(selectedLockedSwatches).map(swatch => swatch.dataset.color);
 }
 
 if (typeof module !== 'undefined' && module.exports) {

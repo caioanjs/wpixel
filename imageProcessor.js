@@ -29,6 +29,10 @@ class ImageProcessor {
         if (!this.originalImage) return;
 
         this.originalCanvas = document.getElementById('originalCanvas');
+        if (!this.originalCanvas) {
+            console.warn('Original canvas element not found');
+            return;
+        }
         this.originalContext = this.originalCanvas.getContext('2d');
 
         const maxSize = 300;
@@ -63,53 +67,60 @@ class ImageProcessor {
         return { width: Math.round(width), height: Math.round(height) };
     }
 
-    convertToPixelArt(targetWidth, availableColors) {
+    convertToPixelArt(targetWidth, availableColors, useAdvancedMode = true) {
         if (!this.originalImage) {
             throw new Error('No image loaded');
         }
 
+        if (!availableColors || availableColors.length === 0) {
+            throw new Error('No colors available for conversion');
+        }
+
+        console.log(`Converting with ${availableColors.length} colors:`, availableColors);
+
         const aspectRatio = this.originalImage.height / this.originalImage.width;
         const targetHeight = Math.round(targetWidth * aspectRatio);
 
+        if (useAdvancedMode) {
+            return this.convertWithAdvancedMode(targetWidth, targetHeight, availableColors);
+        } else {
+            return this.convertWithBasicMode(targetWidth, targetHeight, availableColors);
+        }
+    }
+
+    convertWithAdvancedMode(targetWidth, targetHeight, availableColors) {
+        // Pre-process image with slight blur to reduce noise
+        const preprocessCanvas = document.createElement('canvas');
+        const preprocessContext = preprocessCanvas.getContext('2d');
+        preprocessCanvas.width = targetWidth * 2; // Higher intermediate resolution
+        preprocessCanvas.height = targetHeight * 2;
+
+        preprocessContext.imageSmoothingEnabled = true;
+        preprocessContext.drawImage(this.originalImage, 0, 0, preprocessCanvas.width, preprocessCanvas.height);
+
+        // Apply slight blur to reduce noise
+        preprocessContext.filter = 'blur(0.5px)';
+        preprocessContext.drawImage(preprocessCanvas, 0, 0);
+
+        // Now downscale to target size
         const tempCanvas = document.createElement('canvas');
         const tempContext = tempCanvas.getContext('2d');
         tempCanvas.width = targetWidth;
         tempCanvas.height = targetHeight;
 
-        tempContext.drawImage(this.originalImage, 0, 0, targetWidth, targetHeight);
+        tempContext.imageSmoothingEnabled = true;
+        tempContext.drawImage(preprocessCanvas, 0, 0, targetWidth, targetHeight);
 
         const imageData = tempContext.getImageData(0, 0, targetWidth, targetHeight);
         const data = imageData.data;
 
-        for (let i = 0; i < data.length; i += 4) {
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
-            const a = data[i + 3];
-
-            if (a < 128) {
-                data[i] = 255;
-                data[i + 1] = 255;
-                data[i + 2] = 255;
-                data[i + 3] = 0;
-                continue;
-            }
-
-            const originalColor = rgbToHex(r, g, b);
-            const closestColor = findClosestColor(originalColor, availableColors);
-            const closestRgb = hexToRgb(closestColor);
-
-            data[i] = closestRgb.r;
-            data[i + 1] = closestRgb.g;
-            data[i + 2] = closestRgb.b;
-            data[i + 3] = 255;
-        }
+        // Apply advanced dithering
+        this.applyFloydSteinbergDithering(data, targetWidth, targetHeight, availableColors);
 
         tempContext.putImageData(imageData, 0, 0);
-
         this.sourceCanvas = tempCanvas;
-        
         this.displayPixelArt(tempCanvas, targetWidth, targetHeight);
+        this.validatePixelArtColors(tempCanvas, availableColors);
 
         return {
             canvas: tempCanvas,
@@ -119,8 +130,156 @@ class ImageProcessor {
         };
     }
 
+    convertWithBasicMode(targetWidth, targetHeight, availableColors) {
+        const tempCanvas = document.createElement('canvas');
+        const tempContext = tempCanvas.getContext('2d');
+        tempCanvas.width = targetWidth;
+        tempCanvas.height = targetHeight;
+
+        // Disable image smoothing for crisp pixel art
+        tempContext.imageSmoothingEnabled = false;
+        tempContext.mozImageSmoothingEnabled = false;
+        tempContext.webkitImageSmoothingEnabled = false;
+        tempContext.msImageSmoothingEnabled = false;
+
+        tempContext.drawImage(this.originalImage, 0, 0, targetWidth, targetHeight);
+
+        const imageData = tempContext.getImageData(0, 0, targetWidth, targetHeight);
+        const data = imageData.data;
+
+        // Apply Floyd-Steinberg dithering for better quality
+        this.applyFloydSteinbergDithering(data, targetWidth, targetHeight, availableColors);
+
+        tempContext.putImageData(imageData, 0, 0);
+
+        this.sourceCanvas = tempCanvas;
+        
+        this.displayPixelArt(tempCanvas, targetWidth, targetHeight);
+
+        // Validate the result
+        this.validatePixelArtColors(tempCanvas, availableColors);
+
+        return {
+            canvas: tempCanvas,
+            width: targetWidth,
+            height: targetHeight,
+            totalPixels: targetWidth * targetHeight
+        };
+    }
+
+    validatePixelArtColors(canvas, expectedPalette) {
+        const context = canvas.getContext('2d');
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        
+        const foundColors = new Set();
+        const unexpectedColors = new Set();
+        
+        for (let i = 0; i < data.length; i += 4) {
+            const a = data[i + 3];
+            
+            // Skip transparent pixels
+            if (a < 128) continue;
+            
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            const colorHex = rgbToHex(r, g, b);
+            
+            foundColors.add(colorHex);
+            
+            if (!expectedPalette.includes(colorHex)) {
+                unexpectedColors.add(colorHex);
+            }
+        }
+        
+        console.log(`Validation complete:`, {
+            expectedColors: expectedPalette.length,
+            foundColors: foundColors.size,
+            unexpectedColors: unexpectedColors.size,
+            colorsUsed: Array.from(foundColors),
+            unexpectedColors: Array.from(unexpectedColors)
+        });
+        
+        if (unexpectedColors.size > 0) {
+            console.warn('Found colors not in palette:', Array.from(unexpectedColors));
+        }
+    }
+
+    applyFloydSteinbergDithering(data, width, height, palette) {
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const idx = (y * width + x) * 4;
+                const r = data[idx];
+                const g = data[idx + 1];
+                const b = data[idx + 2];
+                const a = data[idx + 3];
+
+                // Handle transparency
+                if (a < 128) {
+                    data[idx] = 255;
+                    data[idx + 1] = 255;
+                    data[idx + 2] = 255;
+                    data[idx + 3] = 0;
+                    continue;
+                }
+
+                const originalColor = rgbToHex(r, g, b);
+                const closestColor = findClosestColor(originalColor, palette);
+                const closestRgb = hexToRgb(closestColor);
+
+                if (!closestRgb) {
+                    console.warn('Invalid closest color:', closestColor);
+                    continue;
+                }
+
+                // Set the new color
+                data[idx] = closestRgb.r;
+                data[idx + 1] = closestRgb.g;
+                data[idx + 2] = closestRgb.b;
+                data[idx + 3] = 255;
+
+                // Calculate and distribute error for dithering
+                const errorR = r - closestRgb.r;
+                const errorG = g - closestRgb.g;
+                const errorB = b - closestRgb.b;
+
+                // Floyd-Steinberg error distribution
+                this.distributeError(data, width, height, x, y, errorR, errorG, errorB);
+            }
+        }
+    }
+
+    distributeError(data, width, height, x, y, errorR, errorG, errorB) {
+        const positions = [
+            { dx: 1, dy: 0, factor: 7/16 },  // right
+            { dx: -1, dy: 1, factor: 3/16 }, // bottom-left
+            { dx: 0, dy: 1, factor: 5/16 },  // bottom
+            { dx: 1, dy: 1, factor: 1/16 }   // bottom-right
+        ];
+
+        for (const pos of positions) {
+            const newX = x + pos.dx;
+            const newY = y + pos.dy;
+
+            if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
+                const idx = (newY * width + newX) * 4;
+                
+                // Only distribute error to pixels that haven't been processed yet
+                if (data[idx + 3] >= 128) { // Not transparent
+                    data[idx] = Math.max(0, Math.min(255, data[idx] + errorR * pos.factor));
+                    data[idx + 1] = Math.max(0, Math.min(255, data[idx + 1] + errorG * pos.factor));
+                    data[idx + 2] = Math.max(0, Math.min(255, data[idx + 2] + errorB * pos.factor));
+                }
+            }
+        }
+    }
+
     displayPixelArt(sourceCanvas, pixelWidth, pixelHeight) {
         this.resultCanvas = document.getElementById('resultCanvas');
+        if (!this.resultCanvas) {
+            throw new Error('Result canvas element not found');
+        }
         this.resultContext = this.resultCanvas.getContext('2d');
 
         const minPixelSize = 12;
@@ -148,6 +307,10 @@ class ImageProcessor {
 
     initializeGridOverlay(displayWidth, displayHeight, pixelWidth, pixelHeight) {
         const gridCanvas = document.getElementById('gridCanvas');
+        if (!gridCanvas) {
+            console.warn('Grid canvas element not found');
+            return;
+        }
         const gridContext = gridCanvas.getContext('2d');
 
         gridCanvas.width = displayWidth;
@@ -189,6 +352,10 @@ class ImageProcessor {
 
     toggleGrid() {
         const gridCanvas = document.getElementById('gridCanvas');
+        if (!gridCanvas) {
+            console.warn('Grid canvas element not found');
+            return false;
+        }
         const isVisible = gridCanvas.style.display !== 'none';
         gridCanvas.style.display = isVisible ? 'none' : 'block';
         return !isVisible;
@@ -228,6 +395,9 @@ class ImageProcessor {
 
     createNormalVersionWithGrid() {
         const gridCanvas = document.getElementById('gridCanvas');
+        if (!gridCanvas) {
+            return this.sourceCanvas.toDataURL('image/png');
+        }
         const isGridVisible = gridCanvas.style.display !== 'none';
         
         if (!isGridVisible) {
@@ -294,6 +464,10 @@ class ImageProcessor {
         );
         
         const gridCanvas = document.getElementById('gridCanvas');
+        if (!gridCanvas) {
+            console.warn('Grid canvas element not found for high-res export');
+            return highResCanvas.toDataURL('image/png');
+        }
         const isGridVisible = gridCanvas.style.display !== 'none';
         
         if (isGridVisible) {

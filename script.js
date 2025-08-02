@@ -14,27 +14,37 @@ function initializeColorModeTabs() {
     const modeTabs = document.querySelectorAll('.mode-tab');
     const customSection = document.getElementById('customColorsSection');
     
+    if (modeTabs.length === 0) {
+        console.warn('No mode tabs found');
+        return;
+    }
+    
     modeTabs.forEach(tab => {
         tab.addEventListener('click', () => {
             modeTabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             
             const mode = tab.dataset.mode;
-            if (mode === 'custom') {
+            if (mode === 'custom' && customSection) {
                 customSection.style.display = 'block';
                 if (getSelectedColors().length === 0) {
                     selectAllFreeColors();
                 }
-            } else {
+            } else if (customSection) {
                 customSection.style.display = 'none';
             }
         });
     });
     
-    document.getElementById('selectAllFree').addEventListener('click', selectAllFreeColors);
-    document.getElementById('selectAllLocked').addEventListener('click', selectAllLockedColors);
-    document.getElementById('selectAll').addEventListener('click', selectAllColors);
-    document.getElementById('clearAll').addEventListener('click', clearAllColors);
+    const selectAllFreeBtn = document.getElementById('selectAllFree');
+    const selectAllLockedBtn = document.getElementById('selectAllLocked');
+    const selectAllBtn = document.getElementById('selectAll');
+    const clearAllBtn = document.getElementById('clearAll');
+    
+    if (selectAllFreeBtn) selectAllFreeBtn.addEventListener('click', selectAllFreeColors);
+    if (selectAllLockedBtn) selectAllLockedBtn.addEventListener('click', selectAllLockedColors);
+    if (selectAllBtn) selectAllBtn.addEventListener('click', selectAllColors);
+    if (clearAllBtn) clearAllBtn.addEventListener('click', clearAllColors);
 }
 
 function setupEventListeners() {
@@ -49,32 +59,39 @@ function setupEventListeners() {
     const showGrid = document.getElementById('showGrid');
     const gridToggle = document.getElementById('gridToggle');
 
+    if (!uploadArea || !imageInput) {
+        console.error('Essential upload elements not found');
+        return;
+    }
+
     uploadArea.addEventListener('click', () => imageInput.click());
     uploadArea.addEventListener('dragover', handleDragOver);
     uploadArea.addEventListener('dragleave', handleDragLeave);
     uploadArea.addEventListener('drop', handleFileDrop);
     imageInput.addEventListener('change', handleFileSelect);
 
-    pixelSize.addEventListener('input', (e) => {
-        pixelSizeNumber.value = e.target.value;
-        updatePixelInfo();
-    });
-    
-    pixelSizeNumber.addEventListener('input', (e) => {
-        const value = Math.max(8, Math.min(200, parseInt(e.target.value) || 32));
-        pixelSize.value = value;
-        pixelSizeNumber.value = value;
-        updatePixelInfo();
-    });
+    if (pixelSize && pixelSizeNumber) {
+        pixelSize.addEventListener('input', (e) => {
+            pixelSizeNumber.value = e.target.value;
+            updatePixelInfo();
+        });
+        
+        pixelSizeNumber.addEventListener('input', (e) => {
+            const value = Math.max(8, Math.min(200, parseInt(e.target.value) || 32));
+            pixelSize.value = value;
+            pixelSizeNumber.value = value;
+            updatePixelInfo();
+        });
+    }
 
-    showGrid.addEventListener('change', handleGridToggle);
-    gridToggle.addEventListener('click', handleGridToggle);
+    if (showGrid) showGrid.addEventListener('change', handleGridToggle);
+    if (gridToggle) gridToggle.addEventListener('click', handleGridToggle);
 
-    convertBtn.addEventListener('click', convertImage);
+    if (convertBtn) convertBtn.addEventListener('click', convertImage);
 
-    downloadBtn.addEventListener('click', () => imageProcessor.downloadPixelArt());
-    downloadHighResBtn.addEventListener('click', handleHighResDownload);
-    copyBtn.addEventListener('click', handleCopyToClipboard);
+    if (downloadBtn) downloadBtn.addEventListener('click', () => imageProcessor.downloadPixelArt());
+    if (downloadHighResBtn) downloadHighResBtn.addEventListener('click', handleHighResDownload);
+    if (copyBtn) copyBtn.addEventListener('click', handleCopyToClipboard);
 }
 
 function handleDragOver(e) {
@@ -109,9 +126,18 @@ async function handleFile(file) {
         ImageProcessor.validateImageFile(file);
         showLoadingState();
         await imageProcessor.loadImage(file);
-        document.getElementById('controlsSection').style.display = 'block';
+        
+        const controlsSection = document.getElementById('controlsSection');
+        if (controlsSection) {
+            controlsSection.style.display = 'block';
+        }
+        
         updatePixelInfo();
-        document.getElementById('convertBtn').disabled = false;
+        
+        const convertBtn = document.getElementById('convertBtn');
+        if (convertBtn) {
+            convertBtn.disabled = false;
+        }
     } catch (error) {
         console.error('Error loading image:', error);
         alert(error.message || 'Error loading image. Please try again.');
@@ -122,6 +148,11 @@ async function handleFile(file) {
 
 function showLoadingState() {
     const uploadArea = document.getElementById('uploadArea');
+    if (!uploadArea) {
+        console.warn('Upload area not found');
+        return;
+    }
+    
     const originalContent = uploadArea.innerHTML;
     uploadArea.setAttribute('data-original-content', originalContent);
     uploadArea.innerHTML = `
@@ -134,6 +165,11 @@ function showLoadingState() {
 
 function hideLoadingState() {
     const uploadArea = document.getElementById('uploadArea');
+    if (!uploadArea) {
+        console.warn('Upload area not found');
+        return;
+    }
+    
     const originalContent = uploadArea.getAttribute('data-original-content');
     if (originalContent) {
         uploadArea.innerHTML = originalContent;
@@ -142,14 +178,21 @@ function hideLoadingState() {
 }
 
 function updatePixelInfo() {
-    const pixelSize = parseInt(document.getElementById('pixelSize').value);
-    const pixelInfo = document.getElementById('pixelInfo');
+    const pixelSizeEl = document.getElementById('pixelSize');
+    const pixelInfoEl = document.getElementById('pixelInfo');
+    
+    if (!pixelSizeEl || !pixelInfoEl) {
+        console.warn('Pixel info elements not found');
+        return;
+    }
+    
+    const pixelSize = parseInt(pixelSizeEl.value);
     
     if (imageProcessor.originalImage) {
         const { width, height, total } = imageProcessor.calculatePixelCount(pixelSize);
-        pixelInfo.textContent = `Pixels: ${width} × ${height} = ${total.toLocaleString()} pixels`;
+        pixelInfoEl.textContent = `Pixels: ${width} × ${height} = ${total.toLocaleString()} pixels`;
     } else {
-        pixelInfo.textContent = `Target width: ${pixelSize} pixels`;
+        pixelInfoEl.textContent = `Target width: ${pixelSize} pixels`;
     }
 }
 
@@ -162,13 +205,18 @@ function handleGridToggle() {
     const gridToggle = document.getElementById('gridToggle');
     const showGrid = document.getElementById('showGrid');
     
-    gridToggle.classList.toggle('active', gridVisible);
-    showGrid.checked = gridVisible;
+    if (gridToggle) {
+        gridToggle.classList.toggle('active', gridVisible);
+        
+        if (gridVisible) {
+            gridToggle.innerHTML = '<span class="grid-icon">⊟</span> Hide Grid';
+        } else {
+            gridToggle.innerHTML = '<span class="grid-icon">⊞</span> Show Grid';
+        }
+    }
     
-    if (gridVisible) {
-        gridToggle.innerHTML = '<span class="grid-icon">⊟</span> Hide Grid';
-    } else {
-        gridToggle.innerHTML = '<span class="grid-icon">⊞</span> Show Grid';
+    if (showGrid) {
+        showGrid.checked = gridVisible;
     }
 }
 
@@ -180,6 +228,11 @@ async function convertImage() {
         }
 
         const convertBtn = document.getElementById('convertBtn');
+        if (!convertBtn) {
+            console.error('Convert button not found');
+            return;
+        }
+        
         const originalText = convertBtn.textContent;
         convertBtn.innerHTML = '<span class="loading"></span> Converting...';
         convertBtn.disabled = true;
@@ -187,7 +240,7 @@ async function convertImage() {
         const targetWidth = parseInt(document.getElementById('pixelSize').value);
         const availableColors = getAvailableColorsForMode();
         
-        if (availableColors.length === 0) {
+        if (!availableColors || availableColors.length === 0) {
             alert('Please select at least one color for conversion.');
             convertBtn.innerHTML = originalText;
             convertBtn.disabled = false;
@@ -199,17 +252,19 @@ async function convertImage() {
         const result = imageProcessor.convertToPixelArt(targetWidth, availableColors);
 
         const resultsSection = document.getElementById('resultsSection');
-        resultsSection.style.display = 'block';
-        
-        const originalImageSection = resultsSection.querySelector('.result-item:first-child');
-        if (originalImageSection) {
-            originalImageSection.style.display = 'none';
+        if (resultsSection) {
+            resultsSection.style.display = 'block';
+            
+            const originalImageSection = resultsSection.querySelector('.result-item:first-child');
+            if (originalImageSection) {
+                originalImageSection.style.display = 'none';
+            }
+            
+            resultsSection.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
         }
-        
-        resultsSection.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start' 
-        });
 
         console.log(`Conversion complete: ${result.width}×${result.height} (${result.totalPixels} pixels) using ${availableColors.length} colors`);
 
@@ -220,8 +275,10 @@ async function convertImage() {
         console.error('Conversion error:', error);
         alert(error.message || 'Error converting image. Please try again.');
         const convertBtn = document.getElementById('convertBtn');
-        convertBtn.innerHTML = convertBtn.getAttribute('data-original-text') || 'Convert to Pixel Art';
-        convertBtn.disabled = false;
+        if (convertBtn) {
+            convertBtn.innerHTML = originalText || 'Convert to Pixel Art';
+            convertBtn.disabled = false;
+        }
     }
 }
 
