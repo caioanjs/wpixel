@@ -14,7 +14,7 @@ wPixel is a powerful, browser-based tool that transforms your images into pixel 
 - 📏 **Flexible Sizing** - Adjustable pixel width from 8 to 200 pixels
 - 🖼️ **High-Resolution Export** - Download up to 100x resolution for printing
 - 📋 **Clipboard Support** - Copy results directly to clipboard
-- 🌐 **Multi-language** - Available in Portuguese and English
+- 🌐 **Multi-language** - Available in Portuguese and English with easy language switching
 - 📱 **Responsive Design** - Works on desktop, tablet, and mobile
 
 ![usage](https://github.com/caioanjs/wpixel/blob/6857fe5618ccc0e057a7a363d04e9b232f65bb4b/img/usage.png)
@@ -43,6 +43,12 @@ wPixel is a powerful, browser-based tool that transforms your images into pixel 
    - **Normal Download**: Get the pixel art at display resolution
    - **High-Res Download**: Export at 100x resolution for high-quality prints
    - **Copy to Clipboard**: Copy directly for pasting into other applications
+
+### Language Selection
+
+- **Language Selector**: Click the language button in the top-right corner to change languages anytime
+- **Persistent Choice**: Your language preference is saved and remembered
+- **Always Accessible**: You can change language even if you chose "don't show again" on the initial popup
 
 ### Color Modes Explained
 
@@ -142,6 +148,7 @@ We welcome contributions to make wPixel accessible to more users worldwide! Curr
            languageTitle: "Choose your language",
            languageSubtitle: "Select your preferred language:",
            languageName: "Your Language Name Here", // ← Just change this!
+           changeLanguage: "Change language",
            dontShowAgain: "Don't show again",
            confirm: "Confirm",
            bluemarbleText: "you can use <a href='https://github.com/SwingTheVine/Wplace-BlueMarble/' target='_blank'>BlueMarble</a> to use this as an overlay!"

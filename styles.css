@@ -48,6 +48,57 @@ header p {
     font-weight: 400;
 }
 
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.header-main {
+    flex: 1;
+}
+
+.header-controls {
+    flex-shrink: 0;
+    margin-left: 20px;
+}
+
+.language-selector-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.language-selector-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.current-flag {
+    font-size: 1.1em;
+}
+
+.current-language {
+    font-weight: 500;
+}
+
+.dropdown-arrow {
+    font-size: 0.8em;
+    opacity: 0.7;
+}
+
 a {
     color: #1C61E7;
     text-decoration: none;
@@ -706,6 +757,20 @@ a:hover {
     
     header h1 {
         font-size: 1.8rem;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .header-controls {
+        margin-left: 0;
+    }
+    
+    .language-selector-btn {
+        padding: 6px 10px;
+        font-size: 0.85rem;
     }
     
     .control-group {

@@ -39,6 +39,7 @@ const TRANSLATIONS = {
         languageTitle: "Escolha seu idioma",
         languageSubtitle: "Selecione o idioma de sua preferência:",
         languageName: "Português",
+        changeLanguage: "Alterar idioma",
         dontShowAgain: "Não mostrar novamente",
         confirm: "Confirmar",
         bluemarbleText: "você pode usar a ferramenta <a href='https://github.com/SwingTheVine/Wplace-BlueMarble/' target='_blank'>BlueMarble</a> para usar essa imagem como uma sobreposição!"
@@ -84,6 +85,7 @@ const TRANSLATIONS = {
         languageTitle: "Choose your language",
         languageSubtitle: "Select your preferred language:",
         languageName: "English",
+        changeLanguage: "Change language",
         dontShowAgain: "Don't show again",
         confirm: "Confirm",
         bluemarbleText: "you can use <a href='https://github.com/SwingTheVine/Wplace-BlueMarble/' target='_blank'>BlueMarble</a> to use this as an overlay!"
@@ -125,6 +127,8 @@ class LanguageManager {
         
         this.generateLanguageButtons();
         this.setupPopupEvents();
+        this.setupLanguageSelectorButton();
+        this.updateCurrentLanguageDisplay();
         
         if (this.shouldShowPopup) {
             console.log('Showing language popup...');
@@ -159,6 +163,28 @@ class LanguageManager {
             languageOptions.appendChild(button);
         });
     }
+
+    setupLanguageSelectorButton() {
+        const languageSelectorBtn = document.getElementById('languageSelectorBtn');
+        if (!languageSelectorBtn) return;
+
+        languageSelectorBtn.addEventListener('click', () => {
+            this.showLanguagePopup(true); // Force show even if "don't show again" was checked
+        });
+    }
+
+    updateCurrentLanguageDisplay() {
+        const currentFlag = document.getElementById('currentFlag');
+        const currentLanguage = document.getElementById('currentLanguage');
+        
+        if (currentFlag && currentLanguage) {
+            const flag = this.languageFlags[this.currentLanguage] || '🌍';
+            const languageName = TRANSLATIONS[this.currentLanguage]?.languageName || this.currentLanguage.toUpperCase();
+            
+            currentFlag.textContent = flag;
+            currentLanguage.textContent = languageName;
+        }
+    }
     
     getStoredLanguage() {
         return localStorage.getItem('preferredLanguage');
@@ -172,6 +198,7 @@ class LanguageManager {
         this.currentLanguage = lang;
         localStorage.setItem('preferredLanguage', lang);
         this.updatePageTexts();
+        this.updateCurrentLanguageDisplay();
     }
     
     setShouldShowPopup(show) {
@@ -208,8 +235,18 @@ class LanguageManager {
         this.updateElement('#downloadHighResBtn', 'downloadHighRes');
         this.updateElement('#copyBtn', 'copyClipboard');
         
+        // Update translatable titles
+        this.updateTitleAttribute('[data-translate-title="changeLanguage"]', 'changeLanguage');
+        
         this.updatePixelInfo();
         this.updateColorCounts();
+    }
+    
+    updateTitleAttribute(selector, key) {
+        const element = document.querySelector(selector);
+        if (element) {
+            element.title = this.translate(key);
+        }
     }
     
     updateElement(selector, key) {
@@ -253,8 +290,8 @@ class LanguageManager {
         }
     }
     
-    showLanguagePopup() {
-        if (!this.shouldShowPopup) {
+    showLanguagePopup(forceShow = false) {
+        if (!this.shouldShowPopup && !forceShow) {
             console.log('Popup should not be shown');
             return;
         }
@@ -314,6 +351,7 @@ class LanguageManager {
         this.currentLanguage = lang;
         localStorage.setItem('preferredLanguage', lang);
         this.updatePageTexts();
+        this.updateCurrentLanguageDisplay();
         
         if (lang === 'en') {
             window.location.href = './en/index.html';
