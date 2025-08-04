@@ -123,6 +123,45 @@ header p {
     box-shadow: 0 8px 20px rgba(0, 255, 102, 0.6);
 }
 
+/* GitHub Repository Link */
+.github-link {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 999;
+}
+
+.github-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 50%;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.github-btn:hover {
+    background: rgba(0, 0, 0, 0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    color: white;
+}
+
+.github-btn svg {
+    transition: transform 0.3s ease;
+}
+
+.github-btn:hover svg {
+    transform: scale(1.1);
+}
+
 a {
     color: #1C61E7;
     text-decoration: none;
@@ -800,6 +839,20 @@ a:hover {
     
     .webring-button {
         width: 60px;
+    }
+    
+    .github-link {
+        bottom: 15px;
+    }
+    
+    .github-btn {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .github-btn svg {
+        width: 16px;
+        height: 16px;
     }
     
     .control-group {
