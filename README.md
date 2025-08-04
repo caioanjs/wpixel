@@ -151,6 +151,7 @@ We welcome contributions to make wPixel accessible to more users worldwide! Curr
            changeLanguage: "Change language",
            dontShowAgain: "Don't show again",
            confirm: "Confirm",
+           madeBy: "Made by",
            bluemarbleText: "you can use <a href='https://github.com/SwingTheVine/Wplace-BlueMarble/' target='_blank'>BlueMarble</a> to use this as an overlay!"
        }
    };

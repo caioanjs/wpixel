@@ -23,20 +23,18 @@
 </head>
 <body>
     <div class="container">
+        <!-- Language Selector - Top Right Corner -->
+        <div class="language-selector-corner">
+            <button class="language-selector-btn" id="languageSelectorBtn" data-translate-title="changeLanguage">
+                <span class="current-flag" id="currentFlag">🇧🇷</span>
+                <span class="current-language" id="currentLanguage">Português</span>
+                <span class="dropdown-arrow">▼</span>
+            </button>
+        </div>
+
         <header>
-            <div class="header-content">
-                <div class="header-main">
-                    <h1 data-translate="title">🌍 wPixel</h1>
-                    <p data-translate="subtitle">Converta qualquer imagem para pixel art, feito para <a href='https://wplace.live/' target='_blank'>wplace.live</a>!</p>
-                </div>
-                <div class="header-controls">
-                    <button class="language-selector-btn" id="languageSelectorBtn" data-translate-title="changeLanguage">
-                        <span class="current-flag" id="currentFlag">🇧🇷</span>
-                        <span class="current-language" id="currentLanguage">Português</span>
-                        <span class="dropdown-arrow">▼</span>
-                    </button>
-                </div>
-            </div>
+            <h1 data-translate="title">🌍 wPixel</h1>
+            <p data-translate="subtitle">Converta qualquer imagem para pixel art, feito para <a href='https://wplace.live/' target='_blank'>wplace.live</a>!</p>
         </header>
 
         <main>
@@ -145,6 +143,15 @@
                 </div>
             </section>
         </main>
+
+        <!-- Developer Attribution -->
+        <div class="developer-attribution">
+            <a href="https://github.com/caioanjs" target="_blank" class="dev-link">
+                <img src="https://anjos.cc/button/anjos.gif" 
+                     onerror="this.src='https://anjos.cc/button/anjosa.png'" 
+                     alt="Made by anjos" class="webring-button">
+            </a>
+        </div>
     </div>
 
     <div id="languagePopup" class="language-popup-overlay">
