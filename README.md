@@ -86,6 +86,8 @@ We welcome contributions to make wPixel accessible to more users worldwide! Curr
 
 ### How to Add a New Language
 
+**🎉 Super Easy!** Just add your language to the translations file - no HTML changes needed!
+
 1. **Fork the Repository**
    ```bash
    git clone https://github.com/caioanjs/wpixel.git
@@ -139,8 +141,7 @@ We welcome contributions to make wPixel accessible to more users worldwide! Curr
            copyError: "Error copying to clipboard",
            languageTitle: "Choose your language",
            languageSubtitle: "Select your preferred language:",
-           portuguese: "Português",
-           english: "English",
+           languageName: "Your Language Name Here", // ← Just change this!
            dontShowAgain: "Don't show again",
            confirm: "Confirm",
            bluemarbleText: "you can use <a href='https://github.com/SwingTheVine/Wplace-BlueMarble/' target='_blank'>BlueMarble</a> to use this as an overlay!"
@@ -149,7 +150,7 @@ We welcome contributions to make wPixel accessible to more users worldwide! Curr
    ```
 
 3. **Add Language Selection Option**
-   Update the language selection popup in your HTML to include your new language option.
+   No additional steps needed! The language will automatically appear in the language selection popup.
 
 4. **Test Your Translation**
    - Open the application in your browser
@@ -166,6 +167,17 @@ We welcome contributions to make wPixel accessible to more users worldwide! Curr
      - Mention if you're a native speaker
 
 ### Translation Guidelines
+
+**🚀 Quick Example:** Adding Spanish
+```javascript
+'es': {
+    title: "🌍 wPixel",
+    subtitle: "¡Convierte cualquier imagen en pixel art, hecho para <a href='https://wplace.live/' target='_blank'>wplace.live</a>!",
+    // ... translate all the other strings ...
+    languageName: "Español", // ← This is all you need for the language selector!
+    // ... rest of translations ...
+}
+```
 
 - **Keep it Concise**: UI text should be brief and clear
 - **Maintain Context**: Preserve the meaning and tone of the original

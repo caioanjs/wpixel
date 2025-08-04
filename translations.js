@@ -38,8 +38,7 @@ const TRANSLATIONS = {
         copyError: "Erro ao copiar para a área de transferência",
         languageTitle: "Escolha seu idioma",
         languageSubtitle: "Selecione o idioma de sua preferência:",
-        portuguese: "Português",
-        english: "English",
+        languageName: "Português",
         dontShowAgain: "Não mostrar novamente",
         confirm: "Confirmar",
         bluemarbleText: "você pode usar a ferramenta <a href='https://github.com/SwingTheVine/Wplace-BlueMarble/' target='_blank'>BlueMarble</a> para usar essa imagem como uma sobreposição!"
@@ -84,8 +83,7 @@ const TRANSLATIONS = {
         copyError: "Error copying to clipboard",
         languageTitle: "Choose your language",
         languageSubtitle: "Select your preferred language:",
-        portuguese: "Português",
-        english: "English",
+        languageName: "English",
         dontShowAgain: "Don't show again",
         confirm: "Confirm",
         bluemarbleText: "you can use <a href='https://github.com/SwingTheVine/Wplace-BlueMarble/' target='_blank'>BlueMarble</a> to use this as an overlay!"
@@ -96,6 +94,18 @@ class LanguageManager {
     constructor() {
         this.currentLanguage = this.getStoredLanguage() || 'pt';
         this.shouldShowPopup = this.getShouldShowPopup();
+        this.languageFlags = {
+            'pt': '🇧🇷',
+            'en': '🇺🇸',
+            'es': '🇪🇸',
+            'fr': '🇫🇷',
+            'de': '🇩🇪',
+            'ja': '🇯🇵',
+            'zh': '🇨🇳',
+            'ru': '🇷🇺',
+            'it': '🇮🇹',
+            'ko': '🇰🇷'
+        };
         this.init();
     }
     
@@ -113,6 +123,7 @@ class LanguageManager {
             currentLanguage: this.currentLanguage
         });
         
+        this.generateLanguageButtons();
         this.setupPopupEvents();
         
         if (this.shouldShowPopup) {
@@ -122,6 +133,31 @@ class LanguageManager {
             console.log('Applying stored language:', this.currentLanguage);
             this.updatePageTexts();
         }
+    }
+
+    generateLanguageButtons() {
+        const languageOptions = document.getElementById('languageOptions');
+        if (!languageOptions) return;
+
+        // Clear existing buttons
+        languageOptions.innerHTML = '';
+
+        // Generate button for each available language
+        Object.keys(TRANSLATIONS).forEach(langCode => {
+            const button = document.createElement('button');
+            button.className = 'language-btn';
+            button.setAttribute('data-lang', langCode);
+            
+            const flag = this.languageFlags[langCode] || '🌍';
+            const languageName = TRANSLATIONS[langCode].languageName || langCode.toUpperCase();
+            
+            button.innerHTML = `
+                <span class="flag">${flag}</span>
+                <span>${languageName}</span>
+            `;
+            
+            languageOptions.appendChild(button);
+        });
     }
     
     getStoredLanguage() {
