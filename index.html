@@ -123,15 +123,41 @@
                     </div>
                     <div class="result-item">
                         <h3 data-translate="pixelArtResult">Resultado da Arte Pixel</h3>
-                        <div class="canvas-container">
-                            <canvas id="resultCanvas"></canvas>
-                            <canvas id="gridCanvas" class="grid-overlay" style="display: none;"></canvas>
+                        <div class="results-layout">
+                            <!-- Image and Controls - Left Side -->
+                            <div class="image-controls-area">
+                                <div class="canvas-container">
+                                    <canvas id="resultCanvas"></canvas>
+                                    <canvas id="gridCanvas" class="grid-overlay" style="display: none;"></canvas>
+                                </div>
+                                <div class="grid-controls">
+                                    <button class="grid-toggle" id="gridToggle">
+                                        <span class="grid-icon">⊞</span> Mostrar Grade
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Color Usage Table - Right Side -->
+                            <div class="color-usage-sidebar" id="colorUsageTable" style="display: none;">
+                                <h4 data-translate="colorUsage">Uso de Cores</h4>
+                                <div class="color-table-container">
+                                    <table class="color-table">
+                                        <thead>
+                                            <tr>
+                                                <th data-translate="color">Cor</th>
+                                                <th data-translate="pixelCount">Pixels</th>
+                                                <th data-translate="percentage">%</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="colorTableBody">
+                                            <!-- Color rows will be populated here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
-                        <div class="grid-controls">
-                            <button class="grid-toggle" id="gridToggle">
-                                <span class="grid-icon">⊞</span> Mostrar Grade
-                            </button>
-                        </div>
+                        
+                        <!-- Download buttons below everything -->
                         <div class="result-actions">
                             <button class="action-btn" id="downloadBtn">📥 Download Normal</button>
                             <button class="action-btn high-res" id="downloadHighResBtn">🔍 Download 100x Alta Resolução</button>

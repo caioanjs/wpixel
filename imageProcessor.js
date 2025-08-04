@@ -121,6 +121,7 @@ class ImageProcessor {
         this.sourceCanvas = tempCanvas;
         this.displayPixelArt(tempCanvas, targetWidth, targetHeight);
         this.validatePixelArtColors(tempCanvas, availableColors);
+        this.generateColorUsageTable(tempCanvas);
 
         return {
             canvas: tempCanvas,
@@ -158,6 +159,7 @@ class ImageProcessor {
 
         // Validate the result
         this.validatePixelArtColors(tempCanvas, availableColors);
+        this.generateColorUsageTable(tempCanvas);
 
         return {
             canvas: tempCanvas,
@@ -583,6 +585,77 @@ class ImageProcessor {
             height: targetHeight,
             total: targetWidth * targetHeight
         };
+    }
+
+    generateColorUsageTable(canvas) {
+        const context = canvas.getContext('2d');
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        
+        const colorCounts = new Map();
+        const totalPixels = canvas.width * canvas.height;
+        
+        for (let i = 0; i < data.length; i += 4) {
+            const a = data[i + 3];
+            
+            // Skip transparent pixels
+            if (a < 128) continue;
+            
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            const colorHex = rgbToHex(r, g, b);
+            
+            if (colorCounts.has(colorHex)) {
+                colorCounts.set(colorHex, colorCounts.get(colorHex) + 1);
+            } else {
+                colorCounts.set(colorHex, 1);
+            }
+        }
+        
+        // Sort colors by usage count (most used first)
+        const sortedColors = Array.from(colorCounts.entries())
+            .sort((a, b) => b[1] - a[1]);
+        
+        this.populateColorUsageTable(sortedColors, totalPixels);
+    }
+
+    populateColorUsageTable(colorData, totalPixels) {
+        const tableBody = document.getElementById('colorTableBody');
+        const tableContainer = document.getElementById('colorUsageTable');
+        
+        if (!tableBody || !tableContainer) {
+            console.warn('Color usage table elements not found');
+            return;
+        }
+        
+        // Clear existing rows
+        tableBody.innerHTML = '';
+        
+        // Populate with color data
+        colorData.forEach(([colorHex, count]) => {
+            const percentage = ((count / totalPixels) * 100).toFixed(1);
+            const rgb = hexToRgb(colorHex);
+            
+            if (!rgb) return;
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <div class="color-info">
+                        <div class="color-swatch" style="background-color: ${colorHex};" title="${colorHex.toUpperCase()}"></div>
+                        ${colorHex.toUpperCase()}
+                    </div>
+                </td>
+                <td class="pixel-count">${count.toLocaleString()}</td>
+                <td class="percentage">${percentage}%</td>
+            `;
+            
+            tableBody.appendChild(row);
+        });
+        
+        // Show the table
+        tableContainer.style.display = 'block';
     }
 }
 

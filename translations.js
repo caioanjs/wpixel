@@ -42,6 +42,11 @@ const TRANSLATIONS = {
         changeLanguage: "Alterar idioma",
         dontShowAgain: "Não mostrar novamente",
         confirm: "Confirmar",
+        colorUsage: "Uso de Cores",
+        color: "Cor",
+        hexCode: "Código Hex",
+        pixelCount: "Pixels",
+        percentage: "Porcentagem",
         bluemarbleText: "você pode usar a ferramenta <a href='https://github.com/SwingTheVine/Wplace-BlueMarble/' target='_blank'>BlueMarble</a> para usar essa imagem como uma sobreposição!"
     },
     
@@ -88,6 +93,11 @@ const TRANSLATIONS = {
         changeLanguage: "Change language",
         dontShowAgain: "Don't show again",
         confirm: "Confirm",
+        colorUsage: "Color Usage",
+        color: "Color",
+        hexCode: "Hex Code",
+        pixelCount: "Pixels",
+        percentage: "Percentage",
         bluemarbleText: "you can use <a href='https://github.com/SwingTheVine/Wplace-BlueMarble/' target='_blank'>BlueMarble</a> to use this as an overlay!"
     }
 };
